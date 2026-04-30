@@ -52,3 +52,8 @@ class Ticket(TicketBase):
 
     class Config:
         orm_mode = True
+
+
+class TicketListResponse(BaseModel):
+    items: List[Ticket]
+    total: int

@@ -61,10 +61,13 @@ const overviewItems = computed(() => [
 
 onMounted(async () => {
   try {
-    const { data: tickets } = await ticketService.getAll()
-    tickets.forEach(t => {
-      if (t.status in stats.value) stats.value[t.status]++
-    })
+    const { data: res } = await ticketService.getStats()
+    stats.value = {
+      open: res.status.open || 0,
+      pending: res.status.pending || 0,
+      resolved: res.status.resolved || 0,
+      closed: res.status.closed || 0
+    }
   } catch (e) {
     console.error('Error fetching stats:', e)
   }

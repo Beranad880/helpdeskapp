@@ -7,10 +7,24 @@ from database import get_db
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
 
-@router.get("/", response_model=List[schemas.Ticket])
+@router.get("/stats")
+def read_ticket_stats(db: Session = Depends(get_db)):
+    from sqlalchemy import func
+    stats = db.query(models.Ticket.status, func.count(models.Ticket.id)).group_by(models.Ticket.status).all()
+    priority_stats = db.query(models.Ticket.priority, func.count(models.Ticket.id)).group_by(models.Ticket.priority).all()
+    
+    return {
+        "status": {s: c for s, c in stats},
+        "priority": {p: c for p, c in priority_stats}
+    }
+
+
+@router.get("/", response_model=schemas.TicketListResponse)
 def read_tickets(
     status: Optional[schemas.TicketStatus] = Query(None),
     priority: Optional[schemas.TicketPriority] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Ticket)
@@ -18,7 +32,11 @@ def read_tickets(
         query = query.filter(models.Ticket.status == status)
     if priority:
         query = query.filter(models.Ticket.priority == priority)
-    return query.all()
+    
+    total = query.count()
+    items = query.offset(skip).limit(limit).all()
+    
+    return {"items": items, "total": total}
 
 
 @router.get("/{ticket_id}", response_model=schemas.Ticket)
