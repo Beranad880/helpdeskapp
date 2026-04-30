@@ -4,8 +4,6 @@ from typing import List, Optional
 import models, schemas
 from database import get_db
 
-PAGE_LIMIT = 20
-
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
 
@@ -24,11 +22,10 @@ def read_ticket_stats(db: Session = Depends(get_db)):
 
 
 
-@router.get("/", response_model=schemas.TicketPage)
+@router.get("/", response_model=List[schemas.TicketSummary])
 def read_tickets(
     status: Optional[schemas.TicketStatus] = Query(None),
     priority: Optional[schemas.TicketPriority] = Query(None),
-    page: int = Query(1, ge=1),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Ticket)
@@ -36,10 +33,7 @@ def read_tickets(
         query = query.filter(models.Ticket.status == status)
     if priority:
         query = query.filter(models.Ticket.priority == priority)
-
-    total = query.count()
-    items = query.order_by(models.Ticket.id.desc()).offset((page - 1) * PAGE_LIMIT).limit(PAGE_LIMIT).all()
-    return {"items": items, "total": total, "page": page, "limit": PAGE_LIMIT}
+    return query.order_by(models.Ticket.id.desc()).all()
 
 
 @router.get("/{ticket_id}", response_model=schemas.Ticket)

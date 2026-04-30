@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Tickets</h1>
-        <p class="page-subtitle">{{ total }} ticket{{ total !== 1 ? 's' : '' }} found</p>
+        <p class="page-subtitle">{{ tickets.length }} ticket{{ tickets.length !== 1 ? 's' : '' }} found</p>
       </div>
       <router-link to="/new-ticket" class="btn btn-primary">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -17,14 +17,14 @@
 
     <div class="filter-bar card">
       <div class="filter-label">Filter by:</div>
-      <select class="form-control filter-select" v-model="filters.status" @change="resetAndFetch">
+      <select class="form-control filter-select" v-model="filters.status" @change="fetchTickets">
         <option value="">All Statuses</option>
         <option value="open">Open</option>
         <option value="pending">Pending</option>
         <option value="resolved">Resolved</option>
         <option value="closed">Closed</option>
       </select>
-      <select class="form-control filter-select" v-model="filters.priority" @change="resetAndFetch">
+      <select class="form-control filter-select" v-model="filters.priority" @change="fetchTickets">
         <option value="">All Priorities</option>
         <option value="low">Low</option>
         <option value="medium">Medium</option>
@@ -67,12 +67,6 @@
         </tbody>
       </table>
     </div>
-
-    <div class="pagination card" v-if="total > limit">
-      <button class="btn btn-ghost btn-sm" :disabled="page === 1" @click="prevPage">← Previous</button>
-      <span class="pagination-info">Page {{ page }} of {{ Math.ceil(total / limit) }}</span>
-      <button class="btn btn-ghost btn-sm" :disabled="page >= Math.ceil(total / limit)" @click="nextPage">Next →</button>
-    </div>
   </div>
 </template>
 
@@ -82,10 +76,6 @@ import { ticketService } from '../api/tickets'
 import StatCards from '../components/StatCards.vue'
 
 const tickets = ref([])
-const total = ref(0)
-const page = ref(1)
-const limit = 10
-
 const filters = reactive({ status: '', priority: '' })
 const stats = reactive({ open: 0, pending: 0, resolved: 0, critical: 0 })
 
@@ -98,18 +88,16 @@ const statCards = computed(() => [
 
 const fetchTickets = async () => {
   try {
-    const params = { page: page.value }
+    const params = {}
     if (filters.status) params.status = filters.status
     if (filters.priority) params.priority = filters.priority
 
-    const [{ data: pageRes }, { data: statsRes }] = await Promise.all([
+    const [{ data: ticketItems }, { data: statsRes }] = await Promise.all([
       ticketService.getAll(params),
       ticketService.getStats(),
     ])
 
-    tickets.value = pageRes.items
-    total.value = pageRes.total
-
+    tickets.value = ticketItems
     stats.open     = statsRes.status.open || 0
     stats.pending  = statsRes.status.pending || 0
     stats.resolved = statsRes.status.resolved || 0
@@ -119,29 +107,10 @@ const fetchTickets = async () => {
   }
 }
 
-const resetAndFetch = () => {
-  page.value = 1
-  fetchTickets()
-}
-
-const prevPage = () => {
-  if (page.value > 1) {
-    page.value--
-    fetchTickets()
-  }
-}
-
-const nextPage = () => {
-  if (page.value < Math.ceil(total.value / limit)) {
-    page.value++
-    fetchTickets()
-  }
-}
-
 const clearFilters = () => {
   filters.status = ''
   filters.priority = ''
-  resetAndFetch()
+  fetchTickets()
 }
 
 onMounted(fetchTickets)
@@ -169,19 +138,4 @@ onMounted(fetchTickets)
 .title-cell { font-weight: 500; }
 .muted { color: #64748b; }
 .empty-row { text-align: center; padding: 40px; color: #94a3b8; }
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  margin-top: 16px;
-  padding: 12px;
-}
-
-.pagination-info {
-  font-size: 13px;
-  color: #64748b;
-  font-weight: 500;
-}
 </style>

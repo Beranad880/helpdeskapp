@@ -1,2 +1,2 @@
 from schemas.comment import CommentBase, CommentCreate, Comment
-from schemas.ticket import TicketCategory, TicketPriority, TicketStatus, TicketBase, TicketCreate, TicketUpdate, TicketSummary, Ticket, TicketPage
+from schemas.ticket import TicketCategory, TicketPriority, TicketStatus, TicketBase, TicketCreate, TicketUpdate, TicketSummary, Ticket
