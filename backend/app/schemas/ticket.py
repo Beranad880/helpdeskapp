@@ -1,0 +1,54 @@
+from pydantic import BaseModel
+from datetime import datetime
+from typing import List, Optional
+from enum import Enum
+from app.schemas.comment import Comment
+
+
+class TicketCategory(str, Enum):
+    bug = "bug"
+    feature = "feature"
+    question = "question"
+
+
+class TicketPriority(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+    critical = "critical"
+
+
+class TicketStatus(str, Enum):
+    open = "open"
+    pending = "pending"
+    resolved = "resolved"
+    closed = "closed"
+
+
+class TicketBase(BaseModel):
+    title: str
+    description: str
+    category: TicketCategory
+    priority: TicketPriority
+    reporter: str
+    assignee: Optional[str] = None
+
+
+class TicketCreate(TicketBase):
+    pass
+
+
+class TicketUpdate(BaseModel):
+    status: Optional[TicketStatus] = None
+    priority: Optional[TicketPriority] = None
+    assignee: Optional[str] = None
+
+
+class Ticket(TicketBase):
+    id: int
+    status: TicketStatus
+    created_at: datetime
+    comments: List[Comment] = []
+
+    class Config:
+        orm_mode = True
