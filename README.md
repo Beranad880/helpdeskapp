@@ -69,36 +69,32 @@ helpdeskapp/
 
 ---
 
-## 🐳 Running with Docker
+## ☁️ Deployment to Railway (Step-by-Step)
 
-The easiest way to get started:
-```bash
-docker-compose up --build
-```
-- **Frontend**: `http://localhost`
-- **Backend API**: `http://localhost:8000`
+Since you are deploying the backend and frontend as **two separate services**, follow these steps:
 
----
+### 1. Backend Service
+1. Create a new service on Railway from your repository.
+2. Set the **Root Directory** to `backend`.
+3. Go to the **Variables** tab and add:
+   - `DATABASE_URL`: Your MySQL connection string (e.g., `mysql+pymysql://user:pass@host:port/db`).
+4. Railway will automatically detect the `Dockerfile` and deploy it.
+5. **Note your Public URL** (e.g., `https://backend-production.up.railway.app`).
 
-## ☁️ Deployment (Railway)
-
-### Backend
-1. Connect your GitHub repo to Railway.
-2. Add a **MySQL** plugin.
-3. Set the `DATABASE_URL` variable to point to the MySQL plugin.
-4. Set the Root Directory to `backend`.
-
-### Frontend
-1. Add a new service from the same repo.
-2. Set the `VITE_API_URL` to your backend's public URL.
-3. Set the Root Directory to `frontend`.
+### 2. Frontend Service
+1. Create another service from the same repository.
+2. Set the **Root Directory** to `frontend`.
+3. Go to the **Variables** tab and add:
+   - `VITE_API_URL`: The **Public URL of your Backend** (e.g., `https://backend-production.up.railway.app`).
+4. **Crucial:** You must set this variable **before** the build starts, as Vite injects it during the build process.
+5. Railway will build the production static files and serve them via Nginx.
 
 ---
 
 ## 📝 Troubleshooting
 
-- **Import Errors?** Ensure you are running `uvicorn` from the `backend/` directory or use `python -m uvicorn backend.main:app`.
-- **Database Connection?** Verify your MySQL server is running and the credentials in `.env` are correct.
-- **CORS Issues?** The backend is configured to allow `*` by default, but you can restrict it in `main.py`.
+- **Frontend can't reach Backend?** Double check that `VITE_API_URL` in Railway variables does **not** have a trailing slash (e.g., use `...railway.app` instead of `...railway.app/`).
+- **Database errors?** Make sure you are using the `mysql+pymysql://` prefix in your `DATABASE_URL` so SQLAlchemy knows which driver to use.
+- **CORS?** The backend is currently set to `allow_origins=["*"]`, which works for any frontend URL.
 
 ---

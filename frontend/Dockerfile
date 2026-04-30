@@ -1,6 +1,11 @@
 # Build stage
 FROM node:18-slim as build-stage
 WORKDIR /app
+
+# Add ARG to allow injecting the backend URL during build
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 COPY package*.json ./
 RUN npm install
 COPY . .
