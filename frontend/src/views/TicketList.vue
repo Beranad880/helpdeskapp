@@ -98,20 +98,17 @@ const statCards = computed(() => [
 
 const fetchTickets = async () => {
   try {
-    const params = {
-      skip: (page.value - 1) * limit,
-      limit: limit
-    }
+    const params = {}
     if (filters.status) params.status = filters.status
     if (filters.priority) params.priority = filters.priority
 
-    const [{ data: ticketRes }, { data: statsRes }] = await Promise.all([
+    const [{ data: ticketItems }, { data: statsRes }] = await Promise.all([
       ticketService.getAll(params),
       ticketService.getStats(),
     ])
 
-    tickets.value = ticketRes.items
-    total.value = ticketRes.total
+    tickets.value = ticketItems
+    total.value = ticketItems.length
     
     stats.open     = statsRes.status.open || 0
     stats.pending  = statsRes.status.pending || 0
