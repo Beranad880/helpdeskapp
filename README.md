@@ -102,4 +102,3 @@ docker-compose up --build
 - **CORS Issues?** The backend is configured to allow `*` by default, but you can restrict it in `main.py`.
 
 ---
-*Developed with ❤️ using Gemini CLI.*
