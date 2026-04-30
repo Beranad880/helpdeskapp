@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import List, Optional
 from enum import Enum
@@ -26,6 +26,7 @@ class TicketStatus(str, Enum):
 
 
 class TicketBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     title: str
     description: str
     category: TicketCategory
@@ -39,6 +40,7 @@ class TicketCreate(TicketBase):
 
 
 class TicketUpdate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     status: Optional[TicketStatus] = None
     priority: Optional[TicketPriority] = None
     assignee: Optional[str] = None
@@ -49,6 +51,3 @@ class Ticket(TicketBase):
     status: TicketStatus
     created_at: datetime
     comments: List[Comment] = []
-
-    class Config:
-        from_attributes = True

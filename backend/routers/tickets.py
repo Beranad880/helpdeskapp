@@ -10,13 +10,16 @@ router = APIRouter(prefix="/tickets", tags=["tickets"])
 @router.get("/stats")
 def read_ticket_stats(db: Session = Depends(get_db)):
     from sqlalchemy import func
-    stats = db.query(models.Ticket.status, func.count(models.Ticket.id)).group_by(models.Ticket.status).all()
+    # Explicitly get the value of the Enum for the key
+    status_stats = db.query(models.Ticket.status, func.count(models.Ticket.id)).group_by(models.Ticket.status).all()
     priority_stats = db.query(models.Ticket.priority, func.count(models.Ticket.id)).group_by(models.Ticket.priority).all()
-    
+
+    # Ensure keys are simple strings
     return {
-        "status": {s: c for s, c in stats},
-        "priority": {p: c for p, c in priority_stats}
+        "status": {str(s if isinstance(s, str) else s.value if s else ""): c for s, c in status_stats},
+        "priority": {str(p if isinstance(p, str) else p.value if p else ""): c for p, c in priority_stats}
     }
+
 
 
 @router.get("/", response_model=List[schemas.Ticket])
@@ -30,7 +33,10 @@ def read_tickets(
         query = query.filter(models.Ticket.status == status)
     if priority:
         query = query.filter(models.Ticket.priority == priority)
-    return query.all()
+    
+    # Use .all() to get models
+    results = query.all()
+    return results
 
 
 @router.get("/{ticket_id}", response_model=schemas.Ticket)
