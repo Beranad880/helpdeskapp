@@ -12,7 +12,7 @@ def create_comment(ticket_id: int, comment: schemas.CommentCreate, db: Session =
     if db_ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
-    db_comment = models.Comment(**comment.dict(), ticket_id=ticket_id)
+    db_comment = models.Comment(**comment.model_dump(), ticket_id=ticket_id)
     db.add(db_comment)
     db.commit()
     db.refresh(db_comment)

@@ -151,7 +151,7 @@ const updateTicket = async () => {
     await ticketService.update(props.id, {
       status: ticket.value.status,
       priority: ticket.value.priority,
-      assignee: ticket.value.assignee,
+      assignee: ticket.value.assignee || null,
     })
     saved.value = true
     setTimeout(() => { saved.value = false }, 2000)

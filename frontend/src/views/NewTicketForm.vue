@@ -115,7 +115,8 @@ const form = reactive({
 const createTicket = async () => {
   loading.value = true
   try {
-    await ticketService.create(form)
+    const payload = { ...form, assignee: form.assignee || null }
+    await ticketService.create(payload)
     router.push('/tickets')
   } catch (e) {
     console.error('Error creating ticket:', e)

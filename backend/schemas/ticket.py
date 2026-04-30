@@ -46,8 +46,18 @@ class TicketUpdate(BaseModel):
     assignee: Optional[str] = None
 
 
-class Ticket(TicketBase):
+class TicketSummary(TicketBase):
     id: int
     status: TicketStatus
     created_at: datetime
+
+
+class Ticket(TicketSummary):
     comments: List[Comment] = []
+
+
+class TicketPage(BaseModel):
+    items: List[TicketSummary]
+    total: int
+    page: int
+    limit: int
