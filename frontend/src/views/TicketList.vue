@@ -97,6 +97,10 @@ const fetchTickets = async () => {
       ticketService.getStats(),
     ])
 
+    if (!Array.isArray(ticketItems)) {
+      console.error('API returned unexpected response:', ticketItems)
+      return
+    }
     tickets.value = ticketItems
     stats.open     = statsRes.status.open || 0
     stats.pending  = statsRes.status.pending || 0
