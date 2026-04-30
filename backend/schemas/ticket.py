@@ -51,9 +51,4 @@ class Ticket(TicketBase):
     comments: List[Comment] = []
 
     class Config:
-        orm_mode = True
-
-
-class TicketListResponse(BaseModel):
-    items: List[Ticket]
-    total: int
+        from_attributes = True

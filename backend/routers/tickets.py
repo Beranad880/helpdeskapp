@@ -19,12 +19,10 @@ def read_ticket_stats(db: Session = Depends(get_db)):
     }
 
 
-@router.get("/", response_model=schemas.TicketListResponse)
+@router.get("/", response_model=List[schemas.Ticket])
 def read_tickets(
     status: Optional[schemas.TicketStatus] = Query(None),
     priority: Optional[schemas.TicketPriority] = Query(None),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Ticket)
@@ -32,11 +30,7 @@ def read_tickets(
         query = query.filter(models.Ticket.status == status)
     if priority:
         query = query.filter(models.Ticket.priority == priority)
-    
-    total = query.count()
-    items = query.offset(skip).limit(limit).all()
-    
-    return {"items": items, "total": total}
+    return query.all()
 
 
 @router.get("/{ticket_id}", response_model=schemas.Ticket)
