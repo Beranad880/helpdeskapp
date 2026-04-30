@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 from enum import Enum
-from app.schemas.comment import Comment
+from schemas.comment import Comment
 
 
 class TicketCategory(str, Enum):

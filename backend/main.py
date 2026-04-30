@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import engine, Base
-from app.routers import tickets, comments
+from database import engine, Base
+from routers import tickets, comments
 
 Base.metadata.create_all(bind=engine)
 

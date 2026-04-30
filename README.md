@@ -22,16 +22,15 @@ A modern, full-stack helpdesk solution designed for simplicity and efficiency. B
 
 ```text
 helpdeskapp/
-├── backend/            # FastAPI, SQLAlchemy, MySQL
-│   ├── routes/         # API Endpoints
+├── backend/            # FastAPI Project Root
+│   ├── models/         # Database models
+│   ├── routers/        # API routes
+│   ├── schemas/        # Pydantic schemas
 │   ├── main.py         # Entry point
-│   └── models.py       # Database Schema
-├── frontend/           # Vue.js 3, Vite, Axios
-│   ├── src/
-│   │   ├── views/      # Page Components
-│   │   └── api/        # Axios Client
-│   └── index.html
-└── docker-compose.yml  # Orchestration
+│   ├── database.py     # DB config
+│   └── .env            # Backend secrets
+├── frontend/           # Vue.js 3 Project Root
+└── docker-compose.yml
 ```
 
 ---
@@ -49,6 +48,8 @@ helpdeskapp/
    python -m venv venv
    source venv/bin/activate  # Windows: venv\Scripts\activate
    pip install -r requirements.txt
+   
+   # Run uvicorn from the backend/ directory
    uvicorn main:app --reload
    ```
    📍 API Docs: `http://localhost:8000/docs`
