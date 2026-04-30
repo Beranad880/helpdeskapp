@@ -31,9 +31,22 @@ def root():
 @app.get("/db-check")
 def db_check(db=Depends(get_db)):
     try:
-        # Execute a simple query to check connection
+        # 1. Základní test spojení
         from sqlalchemy import text
         db.execute(text("SELECT 1"))
-        return {"status": "success", "message": "Database connection is working!"}
+        
+        # 2. Test čtení dat (pokus o načtení prvního ticketu)
+        import models
+        first_ticket = db.query(models.Ticket).first()
+        
+        ticket_info = "Žádné tickety v databázi nenalezeny."
+        if first_ticket:
+            ticket_info = f"Nalezen ticket #{first_ticket.id}: {first_ticket.title} (Reporter: {first_ticket.reporter})"
+            
+        return {
+            "status": "success", 
+            "message": "Databáze je připojena a funkční!",
+            "database_test": ticket_info
+        }
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": f"Chyba databáze: {str(e)}"}
