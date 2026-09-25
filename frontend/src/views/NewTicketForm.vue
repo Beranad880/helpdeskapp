@@ -14,8 +14,13 @@
     </div>
 
     <div class="form-card card">
+      <div v-if="errorMessage" class="error-banner">
+        ⚠️ {{ errorMessage }}
+      </div>
+
       <form @submit.prevent="createTicket">
         <div class="form-group">
+
           <label class="form-label">
             Title <span class="required">*</span>
           </label>
@@ -103,6 +108,7 @@ import { ticketService } from '../api/tickets'
 
 const router = useRouter()
 const loading = ref(false)
+const errorMessage = ref('')
 const form = reactive({
   title: '',
   description: '',
@@ -114,12 +120,18 @@ const form = reactive({
 
 const createTicket = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     const payload = { ...form, assignee: form.assignee || null }
     await ticketService.create(payload)
     router.push('/tickets')
   } catch (e) {
     console.error('Error creating ticket:', e)
+    errorMessage.value =
+      e.response?.data?.detail ||
+      (typeof e.response?.data === 'string' ? e.response.data : null) ||
+      e.message ||
+      'Nepodařilo se vytvořit ticket. Zkontrolujte připojení k databázi.'
   } finally {
     loading.value = false
   }
@@ -127,7 +139,19 @@ const createTicket = async () => {
 </script>
 
 <style scoped>
+.error-banner {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
 .back-link {
+
   display: inline-flex;
   align-items: center;
   gap: 5px;

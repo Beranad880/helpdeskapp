@@ -46,11 +46,29 @@ def read_ticket(ticket_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.TicketSummary)
 def create_ticket(ticket: schemas.TicketCreate, db: Session = Depends(get_db)):
-    db_ticket = models.Ticket(**ticket.model_dump())
-    db.add(db_ticket)
-    db.commit()
-    db.refresh(db_ticket)
-    return db_ticket
+    try:
+        ticket_data = ticket.model_dump()
+        # Ensure enums are converted to their string values for SQLAlchemy
+        if hasattr(ticket_data.get("category"), "value"):
+            ticket_data["category"] = ticket_data["category"].value
+        if hasattr(ticket_data.get("priority"), "value"):
+            ticket_data["priority"] = ticket_data["priority"].value
+
+        db_ticket = models.Ticket(**ticket_data)
+        db.add(db_ticket)
+        db.commit()
+        db.refresh(db_ticket)
+        return db_ticket
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error while saving ticket: {str(e)}"
+        )
+
 
 
 @router.patch("/{ticket_id}", response_model=schemas.Ticket)
