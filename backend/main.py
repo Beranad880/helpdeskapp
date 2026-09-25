@@ -69,12 +69,18 @@ if DIST_DIR.exists():
 
     @app.get("/{full_path:path}")
     def serve_spa(full_path: str):
+        # Do not catch /api paths in SPA fallback
+        if full_path.startswith("api/") or full_path == "api":
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+
         # Serve existing static files in dist (e.g. favicon.ico, vite.svg)
         potential_file = DIST_DIR / full_path
         if full_path and potential_file.is_file():
             return FileResponse(str(potential_file))
         # Fallback to index.html for Vue Router
         return FileResponse(str(DIST_DIR / "index.html"))
+
 else:
     @app.get("/")
     def root():

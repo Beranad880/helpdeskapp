@@ -22,6 +22,7 @@ def read_ticket_stats(db: Session = Depends(get_db)):
 
 
 
+@router.get("", response_model=List[schemas.TicketSummary])
 @router.get("/", response_model=List[schemas.TicketSummary])
 def read_tickets(
     status: Optional[schemas.TicketStatus] = Query(None),
@@ -37,6 +38,7 @@ def read_tickets(
 
 
 @router.get("/{ticket_id}", response_model=schemas.Ticket)
+@router.get("/{ticket_id}/", response_model=schemas.Ticket)
 def read_ticket(ticket_id: int, db: Session = Depends(get_db)):
     db_ticket = db.query(models.Ticket).filter(models.Ticket.id == ticket_id).first()
     if db_ticket is None:
@@ -44,8 +46,10 @@ def read_ticket(ticket_id: int, db: Session = Depends(get_db)):
     return db_ticket
 
 
+@router.post("", response_model=schemas.TicketSummary)
 @router.post("/", response_model=schemas.TicketSummary)
 def create_ticket(ticket: schemas.TicketCreate, db: Session = Depends(get_db)):
+
     try:
         ticket_data = ticket.model_dump()
         # Ensure enums are converted to their string values for SQLAlchemy
@@ -72,7 +76,9 @@ def create_ticket(ticket: schemas.TicketCreate, db: Session = Depends(get_db)):
 
 
 @router.patch("/{ticket_id}", response_model=schemas.Ticket)
+@router.patch("/{ticket_id}/", response_model=schemas.Ticket)
 def update_ticket(ticket_id: int, ticket: schemas.TicketUpdate, db: Session = Depends(get_db)):
+
     db_ticket = db.query(models.Ticket).filter(models.Ticket.id == ticket_id).first()
     if db_ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
