@@ -1,100 +1,133 @@
 # 🛠️ Mini Helpdesk Web Application
 
-A modern, full-stack helpdesk solution designed for simplicity and efficiency. Built with **FastAPI** on the backend and **Vue.js 3** on the frontend.
+Moderní full-stack helpdesk aplikace postavená na **FastAPI** (Python) na backendu a **Vue.js 3** (Vite) na frontendu s databází **MySQL**. Celá aplikace je připravena pro provoz v **jediném Docker kontejneru** (vhodné pro Railway, Render apod.) i pro pohodlný lokální vývoj.
 
 ---
 
-## 🚀 Features
+## 🚀 Klíčové funkce
 
-- **📊 Smart Dashboard**: Instantly view ticket statistics (Open, Pending, Resolved, Closed).
-- **🎫 Ticket Management**: 
-  - List view with advanced filtering by **Status** and **Priority**.
-  - Detailed ticket views with full history.
-  - Category-based sorting (Bug, Feature, Question).
-- **💬 Interactive Comments**: Real-time communication on every ticket.
-- **⚡ Fast UI**: Built with Vue 3 (Composition API) and Vite for a lightning-fast experience.
-- **🐳 Docker Ready**: Fully containerized with Docker Compose for one-click setup.
-- **📜 API Documentation**: Automatically generated OpenAPI (Swagger) docs.
+- **📊 Statistický dashboard**: Přehled stavu ticketů v reálném čase (Open, Pending, Resolved, Closed) a priority.
+- **🎫 Správa ticketů**:
+  - Filtrování podle stavu a priority.
+  - Detail ticketu s kompletní historií a změnou stavu/priority.
+  - Kategorizace (Bug, Feature, Question).
+- **💬 Interaktivní komentáře**: Možnost přidávat komentáře k jednotlivým ticketům.
+- **⚡ Moderní UI**: Vue.js 3 (Composition API), Vite, čistý CSS design.
+- **🐳 Single Container Ready**: Multi-stage Dockerfile sestaví Vue frontend a servíruje ho přímo z FastAPI bez nutnosti samostatného Nginxu.
+- **📜 Automatická API dokumentace**: Swagger UI na `/docs`.
 
 ---
 
-## 🏗️ Project Structure
+## 🏗️ Struktura projektu
 
 ```text
 helpdeskapp/
-├── backend/            # FastAPI Project Root
-│   ├── models/         # Database models
-│   ├── routers/        # API routes
-│   ├── schemas/        # Pydantic schemas
-│   ├── main.py         # Entry point
-│   ├── database.py     # DB config
-│   └── .env            # Backend secrets
-├── frontend/           # Vue.js 3 Project Root
-└── docker-compose.yml
+├── backend/                # FastAPI projekt
+│   ├── models/             # SQLAlchemy databázové modely
+│   ├── routers/            # API routy (/api/tickets, /api/comments)
+│   ├── schemas/            # Pydantic validační schémata
+│   ├── config.py           # Konfigurace prostředí
+│   ├── database.py         # Připojení k DB (SQLAlchemy)
+│   ├── main.py             # Vstupní bod FastAPI & SPA static files
+│   └── requirements.txt    # Python závislosti
+├── frontend/               # Vue.js 3 projekt
+│   ├── src/
+│   │   ├── api/            # Axios klient & API služby
+│   │   ├── components/     # UI komponenty
+│   │   ├── router/         # Vue Router (SPA navigace)
+│   │   └── views/          # Stránky (Dashboard, List, Detail, New)
+│   ├── package.json        # NPM závislosti a skripty
+│   └── vite.config.js      # Vite konfigurace s dev proxy
+├── .dockerignore           # Ignorované soubory při Docker buildu
+├── Dockerfile              # Produkční multi-stage Dockerfile (Frontend + Backend)
+└── README.md
 ```
 
 ---
 
-## 💻 Local Installation
+## ☁️ Nasazení na Railway (Doporučeno: 1 kontejner)
 
-### 1. Backend Setup (FastAPI)
-1. **Navigate to backend:** `cd backend`
-2. **Setup environment:** Create `.env` file (see `.env.example`).
-   ```env
-   DATABASE_URL=mysql+pymysql://user:password@localhost:3306/helpdesk
+Díky sjednocenému multi-stage Dockerfile stačí na Railway vytvořit **pouze 1 službu** a k ní přidat MySQL databázi. Není potřeba řešit CORS ani synchronizaci dvou URL adres.
+
+### Krok 1: Vytvoření MySQL databáze
+1. V projektu na [Railway](https://railway.app) klikněte na **+ New** -> **Database** -> **Add MySQL**.
+2. Railway vytvoří spravovanou databázi.
+
+### Krok 2: Vytvoření webové služby
+1. V tom samém projektu klikněte na **+ New** -> **GitHub Repo** a vyberte tento repozitář.
+2. V záložce **Settings**:
+   - Ponechte **Root Directory** prázdné (Railway automaticky použije kořenový `Dockerfile`).
+3. V záložce **Variables** přidejte pouze:
+   - `DATABASE_URL`: `${{MySQL.DATABASE_URL}}`
+4. V záložce **Settings** -> sekce **Networking**:
+   - Klikněte na **Generate Domain** pro vytvoření veřejné HTTPS adresy.
+
+Railway automaticky sestaví Vue aplikaci, nainstaluje Python závislosti a spustí aplikaci:
+- **Webová aplikace**: `https://<vasedomena>.up.railway.app/`
+- **Swagger API dokumentace**: `https://<vasedomena>.up.railway.app/docs`
+- **Ověření připojení k DB**: `https://<vasedomena>.up.railway.app/api/db-check`
+
+---
+
+## 💻 Lokální spuštění (Vývoj)
+
+Pro vývoj můžete backend i frontend spustit samostatně s funkcí hot-reload.
+
+### 1. Backend (FastAPI)
+1. Přejděte do složky backendu:
+   ```bash
+   cd backend
    ```
-3. **Install & Run:**
+2. Vytvořte a aktivujte virtuální prostředí:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
+   # Windows:
+   venv\Scripts\activate
+   # Linux/macOS:
+   source venv/bin/activate
+   ```
+3. Nainstalujte závislosti:
+   ```bash
    pip install -r requirements.txt
-   
-   # Run uvicorn from the backend/ directory
-   uvicorn main:app --reload
    ```
-   📍 API Docs: `http://localhost:8000/docs`
-
-### 2. Frontend Setup (Vue.js 3)
-1. **Navigate to frontend:** `cd frontend`
-2. **Setup environment:** Create `.env` file.
+4. Vytvořte soubor `.env` v adresáři `backend/`:
    ```env
-   VITE_API_URL=http://localhost:8000
+   DATABASE_URL=mysql+pymysql://root:heslo@localhost:3306/helpdesk
    ```
-3. **Install & Run:**
+5. Spusťte backend server:
+   ```bash
+   uvicorn main:app --reload --port 8000
+   ```
+   📍 API Docs: `http://localhost:8000/docs`  
+   📍 DB Check: `http://localhost:8000/api/db-check`
+
+### 2. Frontend (Vue.js 3)
+1. V novém terminálu přejděte do složky frontendu:
+   ```bash
+   cd frontend
+   ```
+2. Nainstalujte balíčky:
    ```bash
    npm install
+   ```
+3. Spusťte vývojový server:
+   ```bash
    npm run dev
    ```
-   📍 App URL: `http://localhost:5173`
+   📍 Aplikace běží na: `http://localhost:5173`  
+   *(Vite je nakonfigurován tak, že veškerá volání na `/api` automaticky přeposílá na `http://localhost:8000`)*.
 
 ---
 
-## ☁️ Deployment to Railway (Step-by-Step)
+## 🐳 Lokální spuštění v Dockeru
 
-Since you are deploying the backend and frontend as **two separate services**, follow these steps:
+Pokud chcete otestovat produkční sestavení lokálně před nasazením:
 
-### 1. Backend Service
-1. Create a new service on Railway from your repository.
-2. Set the **Root Directory** to `backend`.
-3. Go to the **Variables** tab and add:
-   - `DATABASE_URL`: Your MySQL connection string (e.g., `mysql+pymysql://user:pass@host:port/db`).
-4. Railway will automatically detect the `Dockerfile` and deploy it.
-5. **Note your Public URL** (e.g., `https://backend-production.up.railway.app`).
+```bash
+# 1. Sestavení Docker image
+docker build -t helpdeskapp .
 
-### 2. Frontend Service
-1. Create another service from the same repository.
-2. Set the **Root Directory** to `frontend`.
-3. Go to the **Variables** tab and add:
-   - `VITE_API_URL`: The **Public URL of your Backend** (e.g., `https://backend-production.up.railway.app`).
-4. **Crucial:** You must set this variable **before** the build starts, as Vite injects it during the build process.
-5. Railway will build the production static files and serve them via Nginx.
-
----
-
-## 📝 Troubleshooting
-
-- **Frontend can't reach Backend?** Double check that `VITE_API_URL` in Railway variables does **not** have a trailing slash (e.g., use `...railway.app` instead of `...railway.app/`).
-- **Database errors?** Make sure you are using the `mysql+pymysql://` prefix in your `DATABASE_URL` so SQLAlchemy knows which driver to use.
-- **CORS?** The backend is currently set to `allow_origins=["*"]`, which works for any frontend URL.
-
----
+# 2. Spuštění kontejneru
+docker run -p 8080:8080 -e DATABASE_URL="mysql+pymysql://user:password@host.docker.internal:3306/helpdesk" helpdeskapp
+```
+Aplikace bude dostupná na `http://localhost:8080`.
